@@ -13,10 +13,12 @@ console.log({PieceMap:arguments});
 	throw 'PieceMap argument error';
 }
 
+// Getter
 PieceMap.prototype.has = function(idx) {
     return (this.buffer[Math.floor(idx / 8)] << (7 - idx % 8)) & 1 === 1;
 };
 
+// Setter
 PieceMap.prototype.have = function(idx) {
     var i = Math.floor(idx / 8);
     this.buffer[i] = this.buffer[i] | (1 << (7 - idx % 8));

@@ -57,7 +57,6 @@ WireProtocol.prototype.handleData = function(data) {
 
     // Continue here, even if handshake was just received
     if (this.handshakeReceived) {
-	console.log({pktRemain:this.pktRemain,buffer:this.buffer.length});
 	if (this.pktRemain === undefined) {
 	    if (this.buffer.length >= 4) {
 		var l = Utils.shiftBL(this.buffer, 4);
@@ -65,16 +64,16 @@ WireProtocol.prototype.handleData = function(data) {
 		    l[1] << 16 |
 		    l[2] << 8 |
 		    l[3];
-console.log({pkt:this.pktRemain});
+console.log({pktSize:this.pktRemain});
 		this.pkt = new WirePkt.Reader();
 		this.emit('pkt', this.pkt);
 
 		repeat();
 	    }
 	} else {
-	    var data = Utils.shiftBL(this.buffer, this.pktRemain);
-	    this.pktRemain -= data.length;
-	    this.pkt.write(data);
+	    var buf = Utils.shiftBL(this.buffer, this.pktRemain);
+	    this.pktRemain -= buf.length;
+	    this.pkt.write(buf);
 	    if (this.pktRemain <= 0) {
 		this.pkt.end();
 		delete this.pktRemain;

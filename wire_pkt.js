@@ -49,14 +49,14 @@ function WirePktReader() {
     this.end = function() {
 	if (piece)
 	    this.emit('pieceEnd');
-	else {
+	else if (bufs.length > 0) {
 	    var takeLong = function() {
 		var i = ntohl(Utils.shiftBL(bufs, 4));
 		return i;
 	    };
 
 	    var type = Utils.shiftBL(bufs, 1)[0];
-console.log({type:type});
+	    var index, begin, length;
 	    switch(type) {
 	    case PKT.choke:
 		this.emit('choke');
@@ -77,15 +77,15 @@ console.log({type:type});
 		this.emit('bitfield', bufs.join());
 		break;
 	    case PKT.request:
-		var index = takeLong();
-		var begin = takeLong();
-		var length = takeLong();
+		index = takeLong();
+		begin = takeLong();
+		length = takeLong();
 		this.emit('request', index, begin, length);
 		break;
 	    case PKT.cancel:
-		var index = takeLong();
-		var begin = takeLong();
-		var length = takeLong();
+		index = takeLong();
+		begin = takeLong();
+		length = takeLong();
 		this.emit('cancel', index, begin, length);
 		break;
 	    default:
