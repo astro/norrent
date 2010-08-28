@@ -38,7 +38,6 @@ WireProtocol.prototype.handleData = function(data) {
 				  });
 
     if (data) {
-console.log({buffer:this.buffer.length});
 	this.buffer.write(data);
     }
 
@@ -98,6 +97,19 @@ WireProtocol.prototype.piecemap = function(piecemap) {
     this.sock.write(htonl(piecemap.length + 1));
     this.sock.write(new Buffer([WirePkt.PKT.piecemap]));
     this.sock.write(piecemap);
+};
+
+WireProtocol.prototype.interested = function() {
+    this.sock.write(htonl(1));
+    this.sock.write(new Buffer([WirePkt.PKT.interested]));
+};
+
+WireProtocol.prototype.request = function(index, begin, length) {
+    this.sock.write(htonl(13));
+    this.sock.write(new Buffer([WirePkt.PKT.request]));
+    this.sock.write(htonl(index));
+    this.sock.write(htonl(begin));
+    this.sock.write(htonl(length));
 };
 
 function WireAcceptor(sock, infoHashChecker, peerId) {
