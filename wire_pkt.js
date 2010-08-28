@@ -26,18 +26,17 @@ function WirePktReader() {
 	if (!piece)
 	    bufs.write(data);
 	else {
-	    this.emit('piece', index, begin, data);
+	    this.emit('piece', piece.index, piece.begin, data);
 	    piece.begin += data.length;
 	}
 
 	if (!decided && bufs.length >= 7) {
-	    if (bufs.take(1)[0] === PKT.piece) {
+	    if (Utils.peekBL(bufs, 1)[0] === PKT.piece) {
 		bufs.advance(1);
 		piece = {
 		    index: ntohl(Utils.shiftBL(bufs, 4)),
 		    begin: ntohl(Utils.shiftBL(bufs, 4))
 		};
-console.log({piece:piece});
 
 		var payload = bufs.slice(9, buf.length);
 		bufs.forEach(function(buf) {

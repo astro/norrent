@@ -63,7 +63,6 @@ WireProtocol.prototype.handleData = function(data) {
 		    l[1] << 16 |
 		    l[2] << 8 |
 		    l[3];
-console.log({pktSize:this.pktRemain});
 		this.pkt = new WirePkt.Reader();
 		this.emit('pkt', this.pkt);
 
@@ -92,13 +91,12 @@ WireProtocol.prototype.sendHandshake = function(infoHash, peerId) {
     this.sock.write(buf);  // IN EINEM RUTSCH, YUCHÉ!
 };
 
-WireProtocol.prototype.piecemap = function(piecemap) {
+WireProtocol.prototype.bitfield = function(piecemap) {
     var buf = new Buffer(piecemap.buffer.length + 5);
     htonl(piecemap.buffer.length + 1).copy(buf, 0, 0);
     buf[4] = WirePkt.PKT.bitfield;
     piecemap.buffer.copy(buf, 5, 0);
     this.sock.write(buf);
-console.log({piecemapBuf:buf});
 };
 
 WireProtocol.prototype.interested = function() {
@@ -106,7 +104,6 @@ WireProtocol.prototype.interested = function() {
     htonl(1).copy(buf, 0, 0);
     buf[4] = WirePkt.PKT.interested;
     this.sock.write(buf);
-console.log({interestedBuf:buf});
 };
 
 WireProtocol.prototype.unchoke = function() {
@@ -114,7 +111,6 @@ WireProtocol.prototype.unchoke = function() {
     htonl(1).copy(buf, 0, 0);
     buf[4] = WirePkt.PKT.unchoke;
     this.sock.write(buf);
-console.log({unchokeBuf:buf});
 };
 
 WireProtocol.prototype.request = function(index, begin, length) {
@@ -125,7 +121,6 @@ WireProtocol.prototype.request = function(index, begin, length) {
     htonl(begin).copy(buf, 9, 0);
     htonl(length).copy(buf, 13, 0);
     this.sock.write(buf);
-    console.log({request:[index,begin,length],buf:buf});
 };
 
 function WireAcceptor(sock, infoHashChecker, peerId) {

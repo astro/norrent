@@ -14,7 +14,7 @@ function PieceMap() {
 
 // Getter
 PieceMap.prototype.has = function(idx) {
-    return (this.buffer[Math.floor(idx / 8)] << (7 - idx % 8)) & 1 === 1;
+    return (this.buffer[Math.floor(idx / 8)] >> (7 - idx % 8)) & 1;
 };
 
 // Setter
