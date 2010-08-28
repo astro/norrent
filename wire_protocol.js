@@ -10,21 +10,17 @@ function WireProtocol(sock) {
     var that = this;
 
     this.sock = sock;
+    this.buffer = new BufferList();
     sock.on('data', function(data) {
-console.log({handleData:data.length});
 		that.handleData(data);
 	    });
     this.on('error', function() {
+		console.log("Closing socket");
 		sock.end();
 	    });
-try {
-    this.buffer = new BufferList();
-    
-} catch (x) {
-console.log(x.stack);
-}
+
     setTimeout(function() {
-		   if (!that.receivedHandshake)
+		   if (!that.handshakeReceived)
 		       that.emit('error', 'Protocol timeout');
 	       }, 10 * 1000);
 }
@@ -33,18 +29,19 @@ sys.inherits(WireProtocol, EventEmitter);
 WireProtocol.prototype.handleData = function(data) {
     var that = this;
     // Often we parsed a bit, but more buffer remains
-    var repeat = process.nextTick(function() {
-				      that.handleData();
-				  });
+    var repeat = function() {
+	process.nextTick(function() {
+			     that.handleData();
+			 });
+    };
 
     if (data) {
 	this.buffer.write(data);
     }
 
-    if (!this.receivedHandshake) {
+    if (!this.handshakeReceived) {
 	if (this.buffer.length >= 68) {
 	    var hello = Utils.shiftBL(this.buffer, 20);
-	    console.log({hello:hello,helloS:hello.toString()});
 	    if (hello.toString() != "\x13BitTorrent protocol") {
 		this.emit('error', 'Protocol handshake error');
 		return;
@@ -53,13 +50,14 @@ WireProtocol.prototype.handleData = function(data) {
 	    var infoHash = Utils.shiftBL(this.buffer, 20);
 	    var peerId = Utils.shiftBL(this.buffer, 20);
 
-	    this.receivedHandshake = true;
+	    this.handshakeReceived = true;
 	    this.emit('handshake', infoHash, peerId);
 	}
     }
 
     // Continue here, even if handshake was just received
     if (this.handshakeReceived) {
+	console.log({pktRemain:this.pktRemain,buffer:this.buffer.length});
 	if (this.pktRemain === undefined) {
 	    if (this.buffer.length >= 4) {
 		var l = Utils.shiftBL(this.buffer, 4);
@@ -67,6 +65,7 @@ WireProtocol.prototype.handleData = function(data) {
 		    l[1] << 16 |
 		    l[2] << 8 |
 		    l[3];
+console.log({pkt:this.pktRemain});
 		this.pkt = new WirePkt.Reader();
 		this.emit('pkt', this.pkt);
 
@@ -75,9 +74,11 @@ WireProtocol.prototype.handleData = function(data) {
 	} else {
 	    var data = Utils.shiftBL(this.buffer, this.pktRemain);
 	    this.pktRemain -= data.length;
-	    pkt.write(data);
+	    this.pkt.write(data);
 	    if (this.pktRemain <= 0) {
-		pkt.end();
+		this.pkt.end();
+		delete this.pktRemain;
+		delete this.pkt;
 		repeat();
 	    }
 	}
@@ -96,7 +97,7 @@ WireProtocol.prototype.sendHandshake = function(infoHash, peerId) {
 WireProtocol.prototype.piecemap = function(piecemap) {
     this.sock.write(htonl(piecemap.length + 1));
     this.sock.write(new Buffer([WirePkt.PKT.piecemap]));
-    this.sock.write(piecemap);
+    this.sock.write(piecemap.buffer);
 };
 
 WireProtocol.prototype.interested = function() {
@@ -144,7 +145,6 @@ module.exports = {
 };
 
 function buffersEqual(b1, b2) {
-console.log({buffersEqual:[b1,b2]});
     if (b1.length !== b2.length)
 	return false;
     for(var i = 0; i < b1.length; i++)

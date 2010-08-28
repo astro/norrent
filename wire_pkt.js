@@ -55,7 +55,8 @@ function WirePktReader() {
 		return i;
 	    };
 
-	    var type = Utils.shiftBL(bufs.shift, 1)[0];
+	    var type = Utils.shiftBL(bufs, 1)[0];
+console.log({type:type});
 	    switch(type) {
 	    case PKT.choke:
 		this.emit('choke');
@@ -73,7 +74,7 @@ function WirePktReader() {
 		this.emit('have', takeLong());
 		break;
 	    case PKT.bitfield:
-		this.emit('bitfield', bufs.take());
+		this.emit('bitfield', bufs.join());
 		break;
 	    case PKT.request:
 		var index = takeLong();
