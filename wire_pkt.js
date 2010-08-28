@@ -31,16 +31,19 @@ function WirePktReader() {
 	}
 
 	if (!decided && bufs.length >= 7) {
-	    var buf = bufs.join();
-	    if (buf[0] === PKT.piece) {
+	    if (bufs.take(1)[0] === PKT.piece) {
+		bufs.advance(1);
 		piece = {
-		    index: ntohl(buf.slice(1, 5)),
-		    begin: ntohl(buf.slice(5, 9))
+		    index: ntohl(Utils.shiftBL(bufs, 4)),
+		    begin: ntohl(Utils.shiftBL(bufs, 4))
 		};
+console.log({piece:piece});
 
-		var payload = buf.slice(9, buf.length);
-		this.emit('piece', index, begin, payload);
-		piece.begin += payload.length;
+		var payload = bufs.slice(9, buf.length);
+		bufs.forEach(function(buf) {
+				 this.emit('piece', index, begin, buf);
+				 piece.begin +=  buf.length;
+			     });
 		bufs = undefined;
 	    }
 	    decided = true;

@@ -1,7 +1,6 @@
 var sys = require('sys');
 
 function PieceMap() {
-console.log({PieceMap:arguments});
     if (arguments[0].constructor === Number) {
 	var length = arguments[0];
 	this.buffer = new Buffer(Math.ceil(length / 8));
