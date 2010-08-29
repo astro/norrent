@@ -139,7 +139,7 @@ function WireAcceptor(sock, infoHashChecker, peerId) {
     this.on('handshake', function(infoHash, peerId2) {
 		if (infoHashChecker(infoHash)) {
 		    this.sendHandshake(infoHash, peerId);
-		    this.emit('established');
+		    this.emit('established', infoHash, peerId2);
 		}
 	    });
 }
@@ -151,7 +151,7 @@ function WireInitiator(sock, infoHash, peerId) {
     this.sendHandshake(infoHash, peerId);
     this.on('handshake', function(infoHash2, peerId2) {
 		if (buffersEqual(infoHash, infoHash2)) {
-		    this.emit('established');
+		    this.emit('established', infoHash, peerId2);
 		} else {
 		    this.emit('error', 'Info Hash mismatch');
 		}
