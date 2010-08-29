@@ -123,6 +123,16 @@ WireProtocol.prototype.request = function(index, begin, length) {
     this.sock.write(buf);
 };
 
+WireProtocol.prototype.cancel = function(index, begin, length) {
+    var buf = new Buffer(17);
+    htonl(13).copy(buf, 0, 0);
+    buf[4] = WirePkt.PKT.cancel;
+    htonl(index).copy(buf, 5, 0);
+    htonl(begin).copy(buf, 9, 0);
+    htonl(length).copy(buf, 13, 0);
+    this.sock.write(buf);
+};
+
 function WireAcceptor(sock, infoHashChecker, peerId) {
     WireProtocol.call(this, sock);
 

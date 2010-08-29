@@ -37,6 +37,7 @@ function WirePktReader() {
 		    index: ntohl(Utils.shiftBL(bufs, 4)),
 		    begin: ntohl(Utils.shiftBL(bufs, 4))
 		};
+		this.emit('pieceBegin', piece.index, piece.begin);
 
 		var that = this;
 		bufs.forEach(function(buf) {
