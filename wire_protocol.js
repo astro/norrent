@@ -14,7 +14,8 @@ function WireProtocol(sock) {
     sock.on('data', function(data) {
 		that.handleData(data);
 	    });
-    this.on('error', function() {
+    this.on('error', function(error) {
+		console.log("WIRE PROTOCOL ERROR: " + error.toString());
 		sock.end();
 	    });
 
@@ -134,26 +135,28 @@ WireProtocol.prototype.cancel = function(index, begin, length) {
 };
 
 function WireAcceptor(sock, infoHashChecker, peerId) {
+    var that = this;
     WireProtocol.call(this, sock);
 
     this.on('handshake', function(infoHash, peerId2) {
 		if (infoHashChecker(infoHash)) {
-		    this.sendHandshake(infoHash, peerId);
-		    this.emit('established', infoHash, peerId2);
+		    that.sendHandshake(infoHash, peerId);
+		    that.emit('established', infoHash, peerId2);
 		}
 	    });
 }
 sys.inherits(WireAcceptor, WireProtocol);
 
 function WireInitiator(sock, infoHash, peerId) {
+    var that = this;
     WireProtocol.call(this, sock);
 
     this.sendHandshake(infoHash, peerId);
     this.on('handshake', function(infoHash2, peerId2) {
 		if (buffersEqual(infoHash, infoHash2)) {
-		    this.emit('established', infoHash, peerId2);
+		    that.emit('established', infoHash, peerId2);
 		} else {
-		    this.emit('error', 'Info Hash mismatch');
+		    that.emit('error', 'Info Hash mismatch');
 		}
 	    });
 }
